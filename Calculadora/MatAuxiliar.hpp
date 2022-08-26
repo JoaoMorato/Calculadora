@@ -31,7 +31,7 @@ std::string ZeroDireita(std::string val) {
 	long long i = val.size() - 1;
 	for (; i > 0; i--) {
 		if (val[i] == '0') continue;
-		val.erase(i, val.size() - i - 1);
+		val.erase(i, val.size() - i);
 		break;
 	}
 	if (i == -1) return "0";

@@ -50,6 +50,10 @@ std::string Calcular(std::string num1, std::string num2, char op) {
 	case 'R':
 		resp = Raiz(num2, num1);
 		break;
+	case '%':
+		resp = Mod(num1, num2);
+		if(neg2) resp.insert(resp.begin(), '-');
+		break;
 	}
 	if (!resp.size()) resp = "0";
 
@@ -130,31 +134,29 @@ int main() {
 	std::string frase;
 	std::string fraseCopia;
 	std::string calc;
-	int ponto = 0;
 	frase.clear();
+
+	char espChar[] = { '+', '-', '(', ')', '/', '*', '.', '^', 'R', '%'};
 	while (1) {
 		char c = _getch();
 		if (c >= '0' && c <= '9') {
 			frase += c;
 		}
 		switch (c) {
-		case '+':
-		case '-':
-		case '(':
-		case ')':
-		case '/':
-		case '*':
-		case '.':
-		case '^':
-		case 'R':
-			frase += c;
-			break;
 		case 8:
 			if(frase.size() > 0)
 				frase.pop_back();
 			break;
 		case 27:
 			exit(0);
+			break;
+		default:
+			for (char ch : espChar) {
+				if (ch == c) {
+					frase.push_back(c);
+					break;
+				}
+			}
 			break;
 		}
 		system("cls");

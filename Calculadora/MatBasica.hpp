@@ -13,67 +13,63 @@ std::string Soma(std::string num1, std::string num2) {
 	Separa(num1, &val1, &ponto1);
 	Separa(num2, &val2, &ponto2);
 
-	std::string resp;
+	std::string resp = "";
 	std::string aux = "";
-	char falta = 0;
-	size_t i = 0;
-	while (1) {
-		if (!(i < val1.size() && i < val2.size())) {
-			char result;
-			while (i < val1.size()) {
-				result = val1[val1.size() - i - 1] + falta - '0';
-				falta = result / 10;
-				aux.insert(aux.begin(), (result % 10) + '0');
-				i++;
-			}
-			while (i < val2.size()) {
-				result = val2[val2.size() - i - 1] + falta - '0';
-				falta = result / 10;
-				aux.insert(aux.begin(), (result % 10) + '0');
-				i++;
+	char sobe = 0;
+
+	if (ponto1.size() > ponto2.size())
+		ponto2.insert(ponto2.end(), ponto1.size() - ponto2.size(), '0');
+	else if (ponto1.size() < ponto2.size())
+		ponto1.insert(ponto1.end(), ponto2.size() - ponto1.size(), '0');
+
+	for (size_t i = 1;; i++) {
+		if (ponto1.size() < i) break;
+
+		char sum = ponto1[ponto1.size() - i] + ponto2[ponto2.size() - i] - '0';
+
+		if (sobe) sum++;
+		sobe = 0;
+		if (sum > '9') {
+			sobe = 1;
+			sum -= 10;
+		}
+		aux = sum + aux;
+	}
+
+
+	for (size_t i = 1;; i++) {
+		
+		if (val1.size() < i) {
+			for (size_t j = i;j <= val2.size(); j++) {
+				resp.insert(resp.begin(), (char)(val2[val2.size() - j] + sobe));
+				sobe = 0;
 			}
 			break;
 		}
-		char n1 = val1[val1.size() - i - 1] - '0';
-		char n2 = val2[val2.size() - i - 1] - '0';
-		char result = n1 + n2 + falta;
-		aux.insert(aux.begin(), (result % 10) + '0');
-		falta = result / 10;
-		i++;
-	}
-	resp.clear();
-	if (falta) aux.insert(aux.begin(), falta + '0');
-	resp = aux;
-	if (ponto1 != "0" || ponto2 != "0") {
-
-		if (ponto1.size() > ponto2.size()) {
-			aux = ponto1.substr(0, ponto2.size());
-			aux = Soma(aux, ponto2);
-			if (aux.size() > ponto2.size()) {
-				aux.erase(0, 1);
-				resp = Soma(resp, "1");
-				aux += ponto1.substr(ponto2.size() - 1, ponto1.size() - ponto2.size());
+		else if (val2.size() < i) {
+			for (size_t j = i;j <= val1.size(); j++) {
+				resp.insert(resp.begin(), (char)(val1[val1.size() - j] + sobe));
+				sobe = 0;
 			}
+			break;
 		}
-		else {
-			aux = ponto2.substr(0, ponto1.size());
-			aux = Soma(aux, ponto1);
-			if (aux.size() > ponto1.size()) {
-				aux.erase(0, 1);
-				resp = Soma(resp, "1");
-				aux += ponto2.substr(ponto1.size() - 1, ponto2.size() - ponto1.size());
-			}
-		}
-		for (long long i = aux.size() - 1; i >= 0; i--) {
-			if (aux[i] != '0') break;
-			aux.pop_back();
-		}
-		if (aux.size())
-			resp += '.' + aux;
 
+		
+		char sum = (char)val1[val1.size() - i] + (char)val2[val2.size() - i] - '0';
+
+		if (sobe) sum++;
+		sobe = 0;
+		if (sum > '9') {
+			sobe = 1;
+			sum -= 10;
+		}
+		resp = sum + resp;
 	}
 
+	if (sobe) resp = '1' + resp;
 
+	if(aux != "0")
+		resp += '.' + aux;
 	return resp;
 }
 
@@ -173,32 +169,25 @@ std::string Subtracao(std::string num1, std::string num2) {
 }
 
 std::string Multi(std::string num1, std::string num2) {
-	std::string resp = "0";
+
 	if (!num2.size() || num2 == "0") return "0";
 	if (!num1.size() || num1 == "0") return "0";
 
+	std::string resp = "0";
 	std::string m1, ponto;
 	Separa(num2, &m1, &ponto);
 	size_t count = 0;
 
-	while (m1.size()) {
-		std::string aux = "";
-		aux += m1[m1.size() - 1];
-		m1.erase(m1.size() - 1, 1);
-		std::string cont = "0";
-		while (CompNum(aux, "0") == 1) {
-			cont = Soma(cont, num1);
-			aux = Subtracao(aux, "1");
-		}
-		cont.insert(cont.end(), count, '0');
-		resp = Soma(cont, resp);
-		count++;
+	while (CompNum(m1, "0")) {
+		m1 = Subtracao(m1, "1");
+		resp = Soma(resp, num1);
 	}
 
 	std::string resp2 = "0";
 	size_t quant = ponto.size();
-	int a = CompNum(ponto, "0");
-	while (a == 1) {
+
+	if (CompNum(ponto, "0") == 1) {
+		ponto = ZeroDireita(ponto);
 		resp2 = Multi(num1, ponto);
 	}
 
@@ -214,21 +203,26 @@ std::string Multi(std::string num1, std::string num2) {
 std::string Divisao(std::string num1, std::string num2) {
 	if (!num2.size() || num2 == "0") return num1;
 	if (!num1.size()) return "0";
+
 	std::string aux = "";
 	std::string resp = "0";
 	std::string ponto;
+
 	Separa(num1, &aux, &ponto);
+
 	while (CompNum(aux, num2) != 2) {
 		aux = Subtracao(aux, num2);
 		resp = Soma(resp, "1");
 	}
 	if (aux == "0" && ponto == "0") return resp;
+
 	resp += '.';
 	std::string resp2 = "";
 	aux += ponto[0];
 	ponto.erase(0, 1);
 	std::string rPonto = "0";
-	while (aux != "0") {
+
+	while (CompNum(aux, "0")) {
 		rPonto = "0";
 		while (CompNum(aux, num2) != 2) {
 			aux = Subtracao(aux, num2);
@@ -243,17 +237,38 @@ std::string Divisao(std::string num1, std::string num2) {
 			aux += ponto[0];
 			ponto.erase(0, 1);
 		}
-		else aux = Multi(aux, "10");
+		else aux += '0';
 		resp2 += rPonto;
 	}
 	return resp + resp2;
 }
 
+std::string Mod(std::string num1, std::string mod) {
+	char menor = CompNum(mod, "0");
+	if (!menor|| CompNum(num1, "0")) return "0";
+	if (menor == 2) menor = 1;
+	std::string resto = "0";
+	while (CompNum(resto, num1) == 2) {
+		resto = Soma(resto, mod);
+	}
+
+	if (!CompNum(resto, num1)) {
+		if (menor) resto.insert(resto.begin(), '-');
+		return resto;
+	}
+
+	resto = Subtracao(resto, mod);
+	resto = Subtracao(num1, resto);
+	if(menor) resto.insert(resto.begin(), '-');
+	return resto;
+}
+
 std::string Potencia(std::string num1, std::string quant) {
 	std::string resp = "1";
 	bool menor = 0;
+	std::string par = Mod(quant, "2");
 	if (quant[0] == '-') {
-		menor = 1;
+		menor = par != "0" ? 1 : 0;
 		quant.erase(0, 1);
 	}
 	while (CompNum(quant, "0") == 1) {
@@ -261,7 +276,7 @@ std::string Potencia(std::string num1, std::string quant) {
 		resp = Multi(resp, num1);
 	}
 	if (menor) {
-		resp = Divisao("1", resp);
+		resp.insert(resp.begin(), '-');
 	}
 	return resp;
 }
@@ -271,39 +286,27 @@ std::string Raiz(std::string radicando, std::string indice) {
 	if (!radicando.size() || radicando == "0") return "0";
 	if (radicando == "1") return "1";
 
-	std::string resp = "0";
-	std::string div = "1";
-	std::string ponto = "";
-
-	Separa(radicando, NULL, &ponto);
-	if (ponto != "0") {
-		div.insert(div.end(), ponto.size(), '0');
-		radicando.erase(radicando.size() - 1 - ponto.size(), 1);
-	}
-
-	std::string val;
+	std::string rad;
+	Separa(radicando, &rad, NULL);
+	
 	std::string pot = "1";
-	pot.insert(pot.end(), radicando.size() / 2, '0');
-
-	int divisoes = 0;
-	char virgula = 0;
+	pot.insert(pot.end(), rad.length() / 2, '0');
+	std::string aux;
+	std::string resp = "0";
+	int div = 0;
 	while (1) {
-		char result = CompNum(Potencia(resp, indice), radicando);
-
+		resp = Soma(resp, pot);
+		aux = Potencia(resp, indice);
+		int result = CompNum(aux, radicando);
 		if (!result) return resp;
 		else if (result == 1) {
+			div++;
 			resp = Subtracao(resp, pot);
 			pot = Divisao(pot, "10");
-			printf("\nD: %s", pot.c_str());
-			divisoes = virgula ? divisoes++ : divisoes;
-			if (divisoes > 3) return resp;
-			if (CompNum(pot, "1") == 2 && !virgula) virgula = 1;
-			resp = Soma(resp, pot);
+			if (div == 7) return resp;
 			continue;
 		}
-		resp = Soma(resp, pot);
 	}
-	return resp;
 }
 
 #endif // !_MAT_BASICO_
